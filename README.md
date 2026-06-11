@@ -54,96 +54,88 @@ agent with clear signing so the approval step actually protects the operator.
 
 ---
 
-## Run it end-to-end
+## Run it end-to-end (no hardware needed — ~15 min)
 
-### 1. Contracts → Sepolia
+Works on **Sepolia** (`CHAIN_ID=11155111`), **Polygon Amoy** (`80002`), or
+**Arbitrum Sepolia** (`421614`). Examples below use Amoy; swap the chain/RPC for
+another. You need a deployer key funded with that chain's test gas (a faucet).
+
+### 1. Contracts → deploy + seed a reward
 
 ```bash
 cd contracts
-forge test                      # 9 tests, all green
-cp .env.example .env            # fill SEPOLIA_RPC_URL, DEPLOYER_PRIVATE_KEY, OPERATOR_ADDRESS
-```
+forge test                              # 9 tests, all green
+cp .env.example .env                    # set DEPLOYER_PRIVATE_KEY (funded), OPERATOR_ADDRESS
 
-`OPERATOR_ADDRESS` is the address your Speculos device derives at
-`44'/60'/0'/0/0` — get it in step 3 with `npm run whoami`, then come back here.
-
-```bash
+# OPERATOR_ADDRESS is the address Speculos derives at 44'/60'/0'/0/0 — get it in
+# step 2 with `npm run whoami`, then come back and deploy:
 source .env
-forge script script/Deploy.s.sol \
-  --rpc-url sepolia --broadcast \
-  --private-key "$DEPLOYER_PRIVATE_KEY" -vvvv
+forge script script/Deploy.s.sol --broadcast --legacy \
+  --rpc-url https://rpc-amoy.polygon.technology \
+  --private-key "$DEPLOYER_PRIVATE_KEY"
+# note the printed RewardToken + DePINRewardDistributor addresses
 ```
 
-Note the printed **RewardToken** and **DePINRewardDistributor** addresses.
+### 2. Speculos (the emulated Ledger) + operator
 
-Sanity check the on-chain state:
+Download the prebuilt Ethereum app and start Speculos (port 5005 avoids the
+macOS AirPlay conflict on 5000):
 
 ```bash
-cast call <DISTRIBUTOR> "claimable(address)(uint256)" <OPERATOR> --rpc-url sepolia
-# -> 142500000000000000000  (142.5 RWRD)
+mkdir -p scripts/apps
+curl -sSL -o scripts/apps/ethereum-flex.elf \
+  https://github.com/LedgerHQ/app-ethereum/releases/download/1.22.1/app-1.22.1-flex.elf
+API_PORT=5005 DEVICE_MODEL=flex scripts/run-speculos.sh   # web UI: http://localhost:5005
 ```
 
-### 2. Descriptor → resolve + validate
+In another terminal, get the operator address and fund it for claim gas:
 
 ```bash
-cd ../descriptor
-npm install
-npm run validate                # ✔ valid against ERC-7730 v2 schema
-
-DISTRIBUTOR_ADDRESS=0x... REWARD_TOKEN_ADDRESS=0x... npm run apply-addresses
-# writes calldata-...resolved.json (registry-ready) and compiled/<chainId>-<addr>.json
+cd agent && npm install
+SPECULOS_URL=http://localhost:5005 npm run whoami         # prints the operator address
+# fund that address with a little test gas, and accrue rewards to it (owner key):
+cast send <DISTRIBUTOR> "accrue(address,uint256)" <OPERATOR> 142500000000000000000 \
+  --rpc-url https://rpc-amoy.polygon.technology --private-key "$DEPLOYER_PRIVATE_KEY" --legacy
 ```
 
-### 3. Start Speculos (the signing device)
-
-Speculos doesn't ship Ledger app binaries — provide the Ethereum app `.elf` at
-`scripts/apps/ethereum-<model>.elf` (build via
-[app-ethereum](https://github.com/LedgerHQ/app-ethereum) + ledger-app-builder, or
-copy from a release). Then:
+### 3. Agent → decide, **clear-sign**, broadcast
 
 ```bash
-DEVICE_MODEL=flex scripts/run-speculos.sh     # API + web UI on http://localhost:5000
+cd agent
+cp .env.example .env     # set CHAIN_ID, RPC_URL, DISTRIBUTOR/REWARD_TOKEN/OPERATOR addrs, SPECULOS_URL=http://localhost:5005
+npm test                 # unit tests
+npm run dry-run          # reads claimable + gas, decides, prints the assembled tx (no device)
+npm start                # full loop: decide -> clear-sign on Speculos -> broadcast
 ```
 
-### 4. Agent → decide, clear-sign, broadcast
+When it reaches the device, open **http://localhost:5005**, and you'll see the
+Ledger render the claim in plain language:
 
-```bash
-cd ../agent
-npm install
-npm test                        # decision-policy unit tests
-cp .env.example .env            # fill addresses, RPC, thresholds
-npm run whoami                  # prints the operator address from Speculos
-npm run dry-run                 # reads claimable + gas, decides, prints the assembled tx (no device)
-npm start                       # full loop: decide -> clear-sign on Speculos -> broadcast
-```
+> Review transaction to **Claim DePIN rewards** → Interaction with **Clear-Claim**
+> → **Claim 142.5 RWRD** → To `0x…` → Network **Polygon Amoy**
 
-When a claim clears the floor and gas is under the ceiling, the agent assembles
-the tx and hands it to the device. Approve the readable claim on the Speculos
-screen; the agent broadcasts and prints the Sepolia tx hash.
+Swipe through and **hold to sign**. The agent broadcasts and prints the tx hash.
+See `docs/assets/` for screenshots of exactly this.
 
 ---
 
-## Clear-signing trust (the one honest caveat)
+## How clear signing works here
 
-The Ledger device renders clear-signing from **compiled, PKI-signed descriptor
-payloads** — not raw ERC-7730 JSON. Ledger's
-[Crypto Asset List (CAL)](https://developers.ledger.com/docs/clear-signing/for-wallets)
-compiles the ERC-7730 JSON and signs it so the device *trusts* it.
+A production Ledger only renders descriptors that **Ledger's CAL has signed**.
+For development/Speculos, Ledger ships a dev path (used by their own
+`clear-signing-tester`), which this agent uses automatically:
 
-This repo provides the full path **up to** that signature:
+1. The agent POSTs its ERC-7730 descriptor to Ledger's dev backend
+   (`app.devicesdk.ledger-test.com`) → gets a **test-key-signed** descriptor.
+2. A vendored `@ledgerhq/cal-interceptor` (`agent/src/vendor/`) intercepts the
+   DMK's CAL `fetch` calls (context module in CAL `test` mode) and serves it.
 
-- A **real, schema-valid ERC-7730 descriptor** (`descriptor/`), ready to submit
-  to the registry / CAL.
-- A **custom DMK context module** (`agent/src/signer/contextModule.ts`) that
-  serves our descriptor for our contract instead of hitting Ledger's CAL — the
-  documented extension point (`SignerEthBuilder.withContextModule`).
-- A **compiled-artifact loader**: drop the CAL-signed payloads into
-  `descriptor/compiled/<chainId>-<address>.json` and the device renders the full
-  `Claim 142.5 RWRD to 0x…`.
-
-Until that signed artifact is present, the agent **signs successfully but logs a
-blind-sign warning** — it never silently blind-signs. Submitting the descriptor
-to the ERC-7730 registry (so the CAL serves it) closes the loop on real devices.
+So the readable claim renders on Speculos with **no extra steps**. For a
+*production* device, the same descriptor
+(`descriptor/registry/clear-claim/calldata-DePINRewardDistributor.json`,
+schema-valid + `erc7730 lint`-clean) must be merged into Ledger's
+[ERC-7730 registry](https://github.com/ethereum/clear-signing-erc7730-registry)
+— `scripts/submit-descriptor-pr.sh` opens that PR.
 
 **Registry submission is prepared and validated** at
 `descriptor/registry/clear-claim/calldata-DePINRewardDistributor.json`
