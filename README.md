@@ -54,7 +54,37 @@ agent with clear signing so the approval step actually protects the operator.
 
 ---
 
-## Run it end-to-end (no hardware needed — ~15 min)
+## Quickstart — zero-deploy demo (~5 min, no key, no faucet)
+
+The fastest way to see the clear-signed claim. It points at the **live Clear-Claim
+contracts on Polygon Amoy**; the Speculos default seed derives the operator that
+already has rewards accrued — so you deploy nothing and hold no key.
+
+```bash
+# 1. Speculos with the Ledger Ethereum app (port 5005 dodges macOS AirPlay on 5000)
+mkdir -p scripts/apps
+curl -sSL -o scripts/apps/ethereum-flex.elf \
+  https://github.com/LedgerHQ/app-ethereum/releases/download/1.22.1/app-1.22.1-flex.elf
+API_PORT=5005 DEVICE_MODEL=flex scripts/run-speculos.sh        # web UI: http://localhost:5005
+
+# 2. Agent, pointed at the live contract
+cd agent && npm install
+cp .env.amoy-demo.example .env
+npm start
+```
+
+Open **http://localhost:5005**: the Ledger renders **"Claim 142.5 RWRD to 0x… ·
+Network Polygon Amoy"**. **Reject** to just see the render (repeatable), or **swipe
++ hold to sign** to broadcast a real on-chain claim (one-shot until re-accrued).
+
+> Honest scope: this is **testnet** (Polygon Amoy), and the rewards follow a real
+> DePIN reward-claim *pattern* but are accrued by us (no live DePIN hands out test
+> rewards). Speculos is Ledger's **official** emulator running the real Ethereum
+> app + DMK — the signing is genuine, just not on physical hardware.
+
+---
+
+## Run it end-to-end (deploy your own — ~15 min)
 
 Works on **Sepolia** (`CHAIN_ID=11155111`), **Polygon Amoy** (`80002`), or
 **Arbitrum Sepolia** (`421614`). Examples below use Amoy; swap the chain/RPC for
