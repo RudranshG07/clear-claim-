@@ -145,6 +145,15 @@ Until that signed artifact is present, the agent **signs successfully but logs a
 blind-sign warning** — it never silently blind-signs. Submitting the descriptor
 to the ERC-7730 registry (so the CAL serves it) closes the loop on real devices.
 
+**Registry submission is prepared and validated** at
+`descriptor/registry/clear-claim/calldata-DePINRewardDistributor.json`
+(passes `specs/erc7730-v2.schema.json` and `erc7730 lint`). To open the PR:
+
+```bash
+gh auth login                       # one-time
+scripts/submit-descriptor-pr.sh     # forks the registry, pushes, opens the PR
+```
+
 ## The agent is keyless — verify it
 
 No private key is in the agent code or its `.env`:

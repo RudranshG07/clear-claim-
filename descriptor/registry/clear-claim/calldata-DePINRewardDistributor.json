@@ -1,5 +1,5 @@
 {
-  "$schema": "https://eips.ethereum.org/assets/eip-7730/erc7730-v2.schema.json",
+  "$schema": "../../specs/erc7730-v2.schema.json",
   "context": {
     "$id": "DePINRewardDistributor",
     "contract": {
@@ -16,7 +16,7 @@
         }
       ],
       "deployments": [
-        { "chainId": 11155111, "address": "0x1111111111111111111111111111111111111111" }
+        { "chainId": 11155111, "address": "0xE3c8900d3be62DeC6cec5374893A89B1873B55A1" }
       ]
     }
   },
@@ -27,7 +27,7 @@
       "deploymentDate": "2026-06-11T00:00:00Z"
     },
     "constants": {
-      "rwrdToken": "0x2222222222222222222222222222222222222222"
+      "rwrdToken": "0x7870103dC0108C7F9693A5a712AD94bdaBDD3A9D"
     }
   },
   "display": {
