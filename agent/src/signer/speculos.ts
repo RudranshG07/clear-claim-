@@ -32,8 +32,11 @@ export async function connectSpeculos(
     .build();
 
   // Discover the (single) Speculos device and connect.
+  if (process.env.DMK_DEBUG) console.error("[dmk] discovering...");
   const device: DiscoveredDevice = await firstValueFrom(dmk.startDiscovering({}));
+  if (process.env.DMK_DEBUG) console.error(`[dmk] discovered ${device.id} (${device.deviceModel?.model}); connecting...`);
   const sessionId = await dmk.connect({ device });
+  if (process.env.DMK_DEBUG) console.error(`[dmk] connected, session ${sessionId}`);
 
   return {
     dmk,

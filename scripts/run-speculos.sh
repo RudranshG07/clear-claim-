@@ -39,7 +39,10 @@ docker pull "${IMAGE}" >/dev/null
 
 echo "Starting Speculos: model=${DEVICE_MODEL} api+web=:${API_PORT}"
 echo "Web UI / API -> http://localhost:${API_PORT}"
-exec docker run --rm -it \
+# No -t (TTY) so this works when launched detached/in the background; -i kept for
+# signal handling. Run interactively in a terminal? add -t yourself.
+exec docker run --rm -i \
+  --name clear-claim-speculos \
   -v "${APPS_DIR}:/apps" \
   -p "${API_PORT}:5000" \
   "${IMAGE}" \

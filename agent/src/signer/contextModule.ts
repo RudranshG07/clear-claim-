@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import {
   ContextModuleBuilder,
+  ContextModuleChainID,
   type ContextModule,
   type ContextLoader,
   type ClearSignContext,
@@ -86,6 +87,7 @@ export function buildContextModule(
   onDescriptorMiss: () => void,
 ): ContextModule {
   return new ContextModuleBuilder({ originToken: undefined })
+    .setChain(ContextModuleChainID.Ethereum)
     .removeDefaultLoaders()
     .addLoader(new LocalDescriptorLoader(cfg, compiledDescriptorPath, onDescriptorMiss))
     .build();
