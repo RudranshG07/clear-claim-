@@ -1,5 +1,21 @@
 # Deployments
 
+The agent is multi-chain (`CHAIN_ID` selects the network). Deployed and ran the
+full clear-signed flow on two networks.
+
+## Polygon Amoy (chainId 80002 — the testnet of DIMO's chain)
+
+| Contract | Address |
+|---|---|
+| RewardToken (RWRD) | [`0x25701aCCf2B9774afE71f43f4e010Eb82a0A7444`](https://amoy.polygonscan.com/address/0x25701aCCf2B9774afE71f43f4e010Eb82a0A7444) |
+| DePINRewardDistributor | [`0x9C1c395C0B1B15eF4DE0B618597b1e221b7E2128`](https://amoy.polygonscan.com/address/0x9C1c395C0B1B15eF4DE0B618597b1e221b7E2128) |
+
+- **Operator:** `0xf35ec83BDcd18BFF5412Df78362557E0F19f13Db` (Speculos seed `44'/60'/0'/0/0`)
+- **Clear-signed claim** (device showed "Claim 142.5 RWRD to 0x…", "Network: Polygon Amoy"):
+  [`0x1f9dc7b4…`](https://amoy.polygonscan.com/tx/0x1f9dc7b4fe75c3dc3c818b0db49ca21874d81a2ec7177ce622a49da1565852d8)
+  — claimable 142.5 → 0, operator received 142.5 RWRD.
+- Proof: `docs/assets/amoy-amount.png`, `docs/assets/amoy-network.png`.
+
 ## Sepolia (chainId 11155111)
 
 | Contract | Address |

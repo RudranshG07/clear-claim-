@@ -106,7 +106,8 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
     log("broadcasting signed tx ...");
     const receipt = await broadcast(chain, signedTx);
     log(`tx ${receipt.status}: ${receipt.hash} (block ${receipt.blockNumber})`);
-    log(`https://sepolia.etherscan.io/tx/${receipt.hash}`);
+    const explorer = cfg.chain.blockExplorers?.default?.url;
+    if (explorer) log(`${explorer}/tx/${receipt.hash}`);
     return true;
   } finally {
     await conn.close();
