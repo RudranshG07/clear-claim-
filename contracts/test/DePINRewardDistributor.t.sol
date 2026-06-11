@@ -23,7 +23,7 @@ contract DePINRewardDistributorTest is Test {
         token = new RewardToken(POOL);
         distributor = new DePINRewardDistributor(token);
         // Fund the distributor's reward pool.
-        token.transfer(address(distributor), POOL);
+        require(token.transfer(address(distributor), POOL), "fund failed");
     }
 
     function test_AccrueCreditsOperator() public {
