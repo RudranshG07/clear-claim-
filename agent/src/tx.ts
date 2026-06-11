@@ -5,9 +5,9 @@ import {
   type Hex,
   type TransactionSerializableEIP1559,
 } from "viem";
-import { sepolia } from "viem/chains";
 
 export type ClaimTxParams = {
+  chainId: number; // target EVM chain
   to: Address; // distributor contract
   data: Hex; // encoded claim(amount,to)
   nonce: number;
@@ -27,7 +27,7 @@ export function buildUnsignedClaimTx(p: ClaimTxParams): {
 } {
   const tx: TransactionSerializableEIP1559 = {
     type: "eip1559",
-    chainId: sepolia.id,
+    chainId: p.chainId,
     to: p.to,
     data: p.data,
     value: 0n,

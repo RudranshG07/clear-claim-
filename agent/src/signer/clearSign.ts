@@ -1,4 +1,3 @@
-import { readFileSync, existsSync } from "node:fs";
 import {
   CalInterceptor,
   ERC7730Client,
@@ -28,11 +27,9 @@ export type ClearSignSession = {
  * unreachable — the agent then blind-signs with a warning.
  */
 export async function setupClearSigning(
-  descriptorPath: string,
+  descriptor: object,
 ): Promise<ClearSignSession | null> {
-  if (!existsSync(descriptorPath)) return null;
   try {
-    const descriptor = JSON.parse(readFileSync(descriptorPath, "utf8"));
     const interceptor = new CalInterceptor();
     const client = new ERC7730Client({ baseUrl: TEST_BACKEND });
     const res = await addERC7730Descriptor({

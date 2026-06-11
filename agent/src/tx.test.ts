@@ -36,6 +36,7 @@ test("signed claim tx recovers to the signer (reassembly is correct)", async () 
     args: [parseEther("142.5"), account.address],
   });
   const { tx, unsignedBytes } = buildUnsignedClaimTx({
+    chainId: sepolia.id,
     to: distributor,
     data,
     nonce: 7,
@@ -64,6 +65,7 @@ test("unsigned bytes match viem's canonical serialization", () => {
     args: [parseEther("1"), account.address],
   });
   const { tx, unsignedBytes } = buildUnsignedClaimTx({
+    chainId: sepolia.id,
     to: distributor,
     data,
     nonce: 0,

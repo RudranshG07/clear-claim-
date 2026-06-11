@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
+import { readFileSync } from "node:fs";
 import { formatEther, formatGwei, type Hex } from "viem";
 import { loadConfig, type AgentConfig } from "./config.js";
 import { createChain, type Chain } from "./chain.js";
@@ -17,12 +18,21 @@ const moduleDir = dirname(fileURLToPath(import.meta.url));
 // against Ledger's dev CAL flow used by the cal-interceptor.
 const ORIGIN_TOKEN = process.env.GATING_TOKEN ?? "clear-claim-agent";
 
-function resolvedDescriptorPath(): string {
-  // The ERC-7730 descriptor with real deployed addresses.
-  return resolve(
+/**
+ * Load the ERC-7730 descriptor template and patch it with the configured chain
+ * and deployed addresses, so the same descriptor works on any supported chain.
+ */
+function buildDescriptor(cfg: AgentConfig): object {
+  const path = resolve(
     moduleDir,
     "../../descriptor/registry/clear-claim/calldata-DePINRewardDistributor.json",
   );
+  const d = JSON.parse(readFileSync(path, "utf8"));
+  d.context.contract.deployments = [
+    { chainId: cfg.chainId, address: cfg.distributor },
+  ];
+  if (d.metadata?.constants) d.metadata.constants.rwrdToken = cfg.rewardToken;
+  return d;
 }
 
 const log = (...a: unknown[]) => console.log(`[agent ${new Date().toISOString()}]`, ...a);
@@ -56,6 +66,7 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
   ]);
   const data = chain.encodeClaim(decision.amount, cfg.recipient);
   const { tx, unsignedBytes } = buildUnsignedClaimTx({
+    chainId: cfg.chainId,
     to: cfg.distributor,
     data,
     nonce,
@@ -71,7 +82,7 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
   }
 
   // Make our ERC-7730 descriptor render as clear signing on the device.
-  const clearSign = await setupClearSigning(resolvedDescriptorPath());
+  const clearSign = await setupClearSigning(buildDescriptor(cfg));
   if (clearSign && clearSign.count > 0) {
     log(`clear signing armed for ${clearSign.keys.join(", ")}`);
   } else {
