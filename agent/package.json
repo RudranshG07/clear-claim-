@@ -1,0 +1,32 @@
+{
+  "name": "clear-claim-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Autonomous, keyless DePIN reward-claim agent. Watches claimable rewards + gas, assembles a claim tx with viem, and has the operator clear-sign it on a Ledger via the Device Management Kit (Speculos).",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "start": "npm run build && node dist/index.mjs",
+    "dry-run": "npm run build && node dist/index.mjs --dry-run",
+    "whoami": "npm run build && node dist/whoami.mjs",
+    "test": "tsx --test src/decision.test.ts src/tx.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ledgerhq/context-module": "^2.1.0",
+    "@ledgerhq/device-management-kit": "^1.6.0",
+    "@ledgerhq/device-signer-kit-ethereum": "^1.16.0",
+    "@ledgerhq/device-transport-kit-speculos": "^1.2.1",
+    "dotenv": "^16.4.5",
+    "purify-ts": "^2.1.0",
+    "rxjs": "^7.8.2",
+    "viem": "^2.21.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "esbuild": "^0.28.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

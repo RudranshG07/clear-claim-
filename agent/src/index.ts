@@ -1,0 +1,139 @@
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import { formatEther, formatGwei, type Hex } from "viem";
+import { loadConfig, type AgentConfig } from "./config.js";
+import { createChain, type Chain } from "./chain.js";
+import { decide } from "./decision.js";
+import { buildUnsignedClaimTx, buildSignedClaimTx } from "./tx.js";
+import { connectSpeculos } from "./signer/speculos.js";
+import { buildContextModule } from "./signer/contextModule.js";
+import { buildEthSigner, signOnDevice } from "./signer/signTx.js";
+import { broadcast } from "./broadcast.js";
+
+const moduleDir = dirname(fileURLToPath(import.meta.url));
+
+function compiledDescriptorPath(cfg: AgentConfig): string {
+  // descriptor/compiled/<chainId>-<distributor>.json (lowercased address)
+  return resolve(
+    moduleDir,
+    "../../descriptor/compiled",
+    `11155111-${cfg.distributor.toLowerCase()}.json`,
+  );
+}
+
+const log = (...a: unknown[]) => console.log(`[agent ${new Date().toISOString()}]`, ...a);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/** One observe -> decide -> (sign -> broadcast) cycle. Returns true if it claimed. */
+async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<boolean> {
+  const [claimable, fees] = await Promise.all([chain.claimable(cfg.operator), chain.fees()]);
+  log(
+    `claimable=${formatEther(claimable)} RWRD  maxFeePerGas=${formatGwei(fees.maxFeePerGas)} gwei`,
+  );
+
+  const decision = decide({
+    claimable,
+    maxFeePerGas: fees.maxFeePerGas,
+    floor: cfg.floor,
+    ceiling: cfg.ceiling,
+  });
+
+  if (!decision.claim) {
+    log(`hold: ${decision.reason}`);
+    return false;
+  }
+
+  log(`DECIDE claim ${formatEther(decision.amount)} RWRD to ${cfg.recipient} (${decision.reason})`);
+
+  // Assemble the claim transaction (agent holds no key).
+  const [nonce, gas] = await Promise.all([
+    chain.nonce(cfg.operator),
+    chain.estimateClaimGas(cfg.operator, decision.amount, cfg.recipient),
+  ]);
+  const data = chain.encodeClaim(decision.amount, cfg.recipient);
+  const { tx, unsignedBytes } = buildUnsignedClaimTx({
+    to: cfg.distributor,
+    data,
+    nonce,
+    gas,
+    maxFeePerGas: fees.maxFeePerGas,
+    maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
+  });
+
+  if (dryRun) {
+    log("dry-run: assembled unsigned tx (not signing/broadcasting)");
+    log(`  to=${tx.to} nonce=${nonce} gas=${gas} data=${data}`);
+    return true;
+  }
+
+  // Hand the unsigned tx to the operator's device for clear-signed approval.
+  log(`connecting to Speculos at ${cfg.speculosUrl} ...`);
+  const conn = await connectSpeculos(cfg);
+  try {
+    const descriptorPath = compiledDescriptorPath(cfg);
+    const ctxModule = buildContextModule(cfg, descriptorPath, () =>
+      log(
+        `WARNING: no compiled descriptor at ${descriptorPath} — device will BLIND-SIGN. ` +
+          `Produce/sign the descriptor to get clear signing (see README).`,
+      ),
+    );
+    const signer = buildEthSigner(conn.dmk, conn.sessionId, ctxModule);
+
+    log("waiting for operator to approve the readable claim on the device ...");
+    const sig = await signOnDevice(signer, cfg.derivationPath, unsignedBytes, (step) =>
+      log(`  device step: ${step}`),
+    );
+    log(`signed on device (v=${sig.v})`);
+
+    const signedTx: Hex = buildSignedClaimTx(tx, sig);
+    log("broadcasting signed tx ...");
+    const receipt = await broadcast(chain, signedTx);
+    log(`tx ${receipt.status}: ${receipt.hash} (block ${receipt.blockNumber})`);
+    log(`https://sepolia.etherscan.io/tx/${receipt.hash}`);
+    return true;
+  } finally {
+    await conn.close();
+  }
+}
+
+async function main() {
+  const dryRun = process.argv.includes("--dry-run");
+  const once = process.argv.includes("--once") || dryRun;
+  const cfg = loadConfig();
+  const chain = createChain(cfg);
+
+  log(
+    `Clear-Claim agent started (operator=${cfg.operator}, distributor=${cfg.distributor}, ` +
+      `floor=${formatEther(cfg.floor)} RWRD, ceiling=${formatGwei(cfg.ceiling)} gwei)`,
+  );
+  if (dryRun) log("mode: DRY RUN (no device, no broadcast)");
+
+  let running = true;
+  process.on("SIGINT", () => {
+    log("shutting down ...");
+    running = false;
+  });
+
+  while (running) {
+    try {
+      const claimed = await tick(cfg, chain, dryRun);
+      if (once) break;
+      if (claimed) {
+        // After a claim, keep watching (claimable resets to 0).
+        await sleep(cfg.pollIntervalMs);
+      } else {
+        await sleep(cfg.pollIntervalMs);
+      }
+    } catch (err) {
+      log("error:", err instanceof Error ? err.message : err);
+      if (once) process.exitCode = 1;
+      if (once) break;
+      await sleep(cfg.pollIntervalMs);
+    }
+  }
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

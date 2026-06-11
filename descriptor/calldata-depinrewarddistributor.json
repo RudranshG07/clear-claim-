@@ -1,0 +1,61 @@
+{
+  "$schema": "https://eips.ethereum.org/assets/eip-7730/erc7730-v2.schema.json",
+  "context": {
+    "$id": "DePINRewardDistributor",
+    "contract": {
+      "abi": [
+        {
+          "type": "function",
+          "name": "claim",
+          "stateMutability": "nonpayable",
+          "inputs": [
+            { "name": "amount", "type": "uint256" },
+            { "name": "to", "type": "address" }
+          ],
+          "outputs": []
+        }
+      ],
+      "deployments": [
+        { "chainId": 11155111, "address": "0x1111111111111111111111111111111111111111" }
+      ]
+    }
+  },
+  "metadata": {
+    "owner": "Clear-Claim",
+    "info": {
+      "url": "https://github.com/clear-claim/clear-claim",
+      "deploymentDate": "2026-06-11T00:00:00Z"
+    },
+    "constants": {
+      "rwrdToken": "0x2222222222222222222222222222222222222222"
+    }
+  },
+  "display": {
+    "formats": {
+      "claim(uint256 amount, address to)": {
+        "$id": "claim",
+        "intent": "Claim DePIN rewards",
+        "fields": [
+          {
+            "path": "amount",
+            "label": "Claim",
+            "format": "tokenAmount",
+            "params": {
+              "token": "$.metadata.constants.rwrdToken"
+            },
+            "visible": "always"
+          },
+          {
+            "path": "to",
+            "label": "To",
+            "format": "addressName",
+            "params": {
+              "types": ["eoa", "wallet"]
+            },
+            "visible": "always"
+          }
+        ]
+      }
+    }
+  }
+}

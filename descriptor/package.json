@@ -1,0 +1,15 @@
+{
+  "name": "clear-claim-descriptor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "ERC-7730 clear-signing descriptor for DePINRewardDistributor + tooling.",
+  "scripts": {
+    "validate": "node validate.mjs",
+    "apply-addresses": "node apply-addresses.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

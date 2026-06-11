@@ -1,0 +1,22 @@
+# env / secrets
+**/.env
+!**/.env.example
+
+# node
+**/node_modules/
+agent/dist/
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# descriptor build artifacts
+descriptor/calldata-*.resolved.json
+descriptor/compiled/
+
+# python venv (erc7730 tooling attempts)
+.venv-erc7730/
+
+# misc
+.DS_Store
