@@ -11,6 +11,22 @@ import {
 import type { AgentConfig } from "../config.js";
 
 /**
+ * Default Ledger context module with the CAL set to TEST mode, so the device
+ * accepts the test-key-signed descriptor served by the cal-interceptor. Keeps
+ * the default loaders (the calldata loader fetches from the CAL — intercepted).
+ */
+export function buildTestCalContextModule(originToken: string): ContextModule {
+  return new ContextModuleBuilder({ originToken })
+    .setChain(ContextModuleChainID.Ethereum)
+    .setCalConfig({
+      url: "https://crypto-assets-service.api.ledger.com/v1",
+      mode: "test",
+      branch: "main",
+    })
+    .build();
+}
+
+/**
  * Input the DMK Ethereum signer passes to calldata context loaders.
  * (Mirror of CalldataContextInput from @ledgerhq/context-module — redeclared
  * locally to keep a narrow surface.)

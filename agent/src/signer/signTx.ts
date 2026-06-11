@@ -23,6 +23,19 @@ export function buildEthSigner(
 }
 
 /**
+ * Build the signer with Ledger's DEFAULT context module (which fetches
+ * clear-signing descriptors from the CAL). Paired with the cal-interceptor,
+ * this renders our local descriptor as clear signing on Speculos.
+ */
+export function buildDefaultEthSigner(
+  dmk: DeviceManagementKit,
+  sessionId: DeviceSessionId,
+  originToken: string,
+): SignerEth {
+  return new SignerEthBuilder({ dmk, sessionId, originToken }).build();
+}
+
+/**
  * Run the on-device sign-transaction flow and await the signature.
  *
  * The operator approves the claim on the Speculos screen. With the local

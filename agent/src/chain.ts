@@ -6,7 +6,6 @@ import {
   type Address,
   type Hex,
 } from "viem";
-import { sepolia } from "viem/chains";
 import type { AgentConfig } from "./config.js";
 import { distributorAbi } from "./abi.js";
 
@@ -14,7 +13,7 @@ export type Chain = ReturnType<typeof createChain>;
 
 export function createChain(cfg: AgentConfig) {
   const client = createPublicClient({
-    chain: sepolia,
+    chain: cfg.chain,
     transport: http(cfg.rpcUrl),
   });
 

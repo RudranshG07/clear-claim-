@@ -9,14 +9,23 @@
           "name": "claim",
           "stateMutability": "nonpayable",
           "inputs": [
-            { "name": "amount", "type": "uint256" },
-            { "name": "to", "type": "address" }
+            {
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "name": "to",
+              "type": "address"
+            }
           ],
           "outputs": []
         }
       ],
       "deployments": [
-        { "chainId": 11155111, "address": "0x1111111111111111111111111111111111111111" }
+        {
+          "chainId": 11155111,
+          "address": "0x1111111111111111111111111111111111111111"
+        }
       ]
     }
   },
@@ -39,9 +48,10 @@
           {
             "path": "amount",
             "label": "Claim",
-            "format": "tokenAmount",
+            "format": "unit",
             "params": {
-              "token": "$.metadata.constants.rwrdToken"
+              "base": "RWRD",
+              "decimals": 18
             },
             "visible": "always"
           },
@@ -50,7 +60,10 @@
             "label": "To",
             "format": "addressName",
             "params": {
-              "types": ["eoa", "wallet"]
+              "types": [
+                "eoa",
+                "wallet"
+              ]
             },
             "visible": "always"
           }

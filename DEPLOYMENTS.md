@@ -21,6 +21,21 @@
 | Live claim (142.5 RWRD) | [`0xda5565f3…`](https://sepolia.etherscan.io/tx/0xda5565f3c515dd48e72a059367afcfcdd3ab1f7c4664c6d41f4115481d848d7e) |
 | Re-accrue (reset for demo) | [`0xddf5223e…`](https://sepolia.etherscan.io/tx/0xddf5223eea833ebe031ac04bd714c8b373587e47f19cbec1495ac3d569108838) |
 | **Claim signed on Speculos (Ledger Flex) end-to-end** | [`0x5f6b3e13…`](https://sepolia.etherscan.io/tx/0x5f6b3e132c92150d61dbd4bd8f8d5889560f3602bef0f70267732b94817be151) |
+| **CLEAR-SIGNED claim ("Claim 142.5 RWRD to 0x…")** | [`0x070730a2…`](https://sepolia.etherscan.io/tx/0x070730a2a257f6c3c7f353d3f68f9f82fef0747f4cdd813cccd083520777f35b) |
+
+### Clear signing works on-device (2026-06-11)
+
+The device now renders the claim in plain language instead of a hash:
+`Review transaction to: Claim DePIN rewards` → `Interaction with Clear-Claim` →
+`Claim 142.5 RWRD` → `To 0x…` → `Network Ethereum Sepolia`. See
+`docs/assets/02-clearsign-intent.png` and `docs/assets/03-clearsign-amount.png`.
+
+This is achieved by vendoring Ledger's `cal-interceptor` (agent/src/vendor): the
+agent POSTs the local ERC-7730 descriptor to Ledger's dev backend
+(`app.devicesdk.ledger-test.com`) for a test-key-signed descriptor, then
+intercepts the DMK's CAL `fetch` calls (with the context module in CAL `test`
+mode) to serve it. Works on Speculos/dev apps. `docs/assets/01-without-descriptor-refused.png`
+shows the device *refusing to sign* the same tx when no descriptor is available.
 
 ### Full loop proven (2026-06-11)
 

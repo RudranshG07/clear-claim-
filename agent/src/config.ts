@@ -1,7 +1,15 @@
 import "dotenv/config";
 import { z } from "zod";
-import { getAddress, parseEther, parseGwei, type Address } from "viem";
+import { getAddress, parseEther, parseGwei, type Address, type Chain } from "viem";
+import { sepolia, polygonAmoy, arbitrumSepolia } from "viem/chains";
 import { DeviceModelId } from "@ledgerhq/device-management-kit";
+
+// EVM chains the agent supports (all clear-signing-capable via Ledger's CAL).
+const CHAINS: Record<number, Chain> = {
+  [sepolia.id]: sepolia, // 11155111
+  [polygonAmoy.id]: polygonAmoy, // 80002 — DIMO's chain (Polygon)
+  [arbitrumSepolia.id]: arbitrumSepolia, // 421614 — WeatherXM's chain (Arbitrum)
+};
 
 const addressSchema = z
   .string()
@@ -19,8 +27,11 @@ const deviceModelSchema = z
  * secret-ish value is the RPC URL.
  */
 const schema = z.object({
-  // Chain access
-  SEPOLIA_RPC_URL: z.string().url(),
+  // Chain access. CHAIN_ID selects the network; RPC_URL (or legacy
+  // SEPOLIA_RPC_URL) is the endpoint.
+  CHAIN_ID: z.coerce.number().int().default(sepolia.id),
+  RPC_URL: z.string().url().optional(),
+  SEPOLIA_RPC_URL: z.string().url().optional(),
 
   // Deployed contracts (from the Foundry deploy)
   DISTRIBUTOR_ADDRESS: addressSchema,
@@ -59,8 +70,20 @@ function load() {
     );
   }
   const env = parsed.data;
+  const chain = CHAINS[env.CHAIN_ID];
+  if (!chain) {
+    throw new Error(
+      `Unsupported CHAIN_ID ${env.CHAIN_ID}. Supported: ${Object.keys(CHAINS).join(", ")}`,
+    );
+  }
+  const rpcUrl = env.RPC_URL ?? env.SEPOLIA_RPC_URL;
+  if (!rpcUrl) {
+    throw new Error("Set RPC_URL (or SEPOLIA_RPC_URL) in your .env");
+  }
   return {
-    rpcUrl: env.SEPOLIA_RPC_URL,
+    chain,
+    chainId: env.CHAIN_ID,
+    rpcUrl,
     distributor: env.DISTRIBUTOR_ADDRESS,
     rewardToken: env.REWARD_TOKEN_ADDRESS,
     operator: env.OPERATOR_ADDRESS,

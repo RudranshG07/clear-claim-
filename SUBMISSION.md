@@ -41,25 +41,36 @@ own ERC-7730 descriptor for our contract via `SignerEthBuilder.withContextModule
 
 ## Proof of use (this is the important part)
 
-**Full loop, signed on Speculos (Ledger Flex), broadcast to Sepolia:**
-`0x5f6b3e132c92150d61dbd4bd8f8d5889560f3602bef0f70267732b94817be151`
-→ https://sepolia.etherscan.io/tx/0x5f6b3e132c92150d61dbd4bd8f8d5889560f3602bef0f70267732b94817be151
+**The device clear-signs the claim in plain language** — the whole thesis,
+working on a Ledger Flex (Speculos):
 
-The agent log shows the DMK device-action flow:
+1. `docs/assets/01-without-descriptor-refused.png` — with no descriptor, the
+   device **refuses to sign**: "This transaction cannot be clear-signed."
+2. `docs/assets/02-clearsign-intent.png` — "Review transaction to: **Claim DePIN
+   rewards**".
+3. `docs/assets/03-clearsign-amount.png` — "Interaction with **Clear-Claim** /
+   **Claim 142.5 RWRD** / To 0x…".
+
+**Clear-signed claim, broadcast to Sepolia:**
+[`0x070730a2…`](https://sepolia.etherscan.io/tx/0x070730a2a257f6c3c7f353d3f68f9f82fef0747f4cdd813cccd083520777f35b)
+(block 11036145). The agent log:
 ```
-DECIDE claim 142.5 RWRD to 0xf35e…13Db
+DECIDE claim 142.5 RWRD ...
 connecting to Speculos ... discovered SpeculosID (flex) ... connected
-device step: signer.eth.steps.parseTransaction
+clear signing armed for 11155111:0xe3c8...
+Intercepted dapps request ... (descriptors_calldata)
 device step: signer.eth.steps.signTransaction
 signed on device (v=0)
-tx success: 0x5f6b3e13… (block 11034435)
+tx success: 0x070730a2… (block 11036145)
 ```
 
-**The thesis, demonstrated on-device** (`docs/assets/02-cannot-clear-sign.png`):
-when the agent proposes the claim, the Ledger **refuses to blind-sign it** —
-"This transaction cannot be clear-signed" — because our custom `claim` selector
-has no trusted descriptor yet. That refusal *is* the product: the device won't
-let the human approve what it can't make readable.
+**How the readable render works:** the agent serves its own ERC-7730 descriptor
+to the device via Ledger's dev clear-signing flow — POST to
+`app.devicesdk.ledger-test.com` for a test-key-signed descriptor, then a CAL
+`fetch` interceptor (vendored `@ledgerhq/cal-interceptor`) feeds it to the DMK
+default context module in CAL `test` mode. This is the same mechanism as Ledger's
+own `clear-signing-tester`. (On a production device, the descriptor must be in
+Ledger's CAL — the registry route.)
 
 ## Contribution back to Ledger
 

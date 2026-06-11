@@ -6,18 +6,22 @@ import { createChain, type Chain } from "./chain.js";
 import { decide } from "./decision.js";
 import { buildUnsignedClaimTx, buildSignedClaimTx } from "./tx.js";
 import { connectSpeculos } from "./signer/speculos.js";
-import { buildContextModule } from "./signer/contextModule.js";
 import { buildEthSigner, signOnDevice } from "./signer/signTx.js";
+import { buildTestCalContextModule } from "./signer/contextModule.js";
+import { setupClearSigning } from "./signer/clearSign.js";
 import { broadcast } from "./broadcast.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 
-function compiledDescriptorPath(cfg: AgentConfig): string {
-  // descriptor/compiled/<chainId>-<distributor>.json (lowercased address)
+// Origin token for the DMK default context module. Any non-empty value works
+// against Ledger's dev CAL flow used by the cal-interceptor.
+const ORIGIN_TOKEN = process.env.GATING_TOKEN ?? "clear-claim-agent";
+
+function resolvedDescriptorPath(): string {
+  // The ERC-7730 descriptor with real deployed addresses.
   return resolve(
     moduleDir,
-    "../../descriptor/compiled",
-    `11155111-${cfg.distributor.toLowerCase()}.json`,
+    "../../descriptor/registry/clear-claim/calldata-DePINRewardDistributor.json",
   );
 }
 
@@ -66,17 +70,19 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
     return true;
   }
 
+  // Make our ERC-7730 descriptor render as clear signing on the device.
+  const clearSign = await setupClearSigning(resolvedDescriptorPath());
+  if (clearSign && clearSign.count > 0) {
+    log(`clear signing armed for ${clearSign.keys.join(", ")}`);
+  } else {
+    log("WARNING: clear-signing descriptor unavailable — device may blind-sign.");
+  }
+
   // Hand the unsigned tx to the operator's device for clear-signed approval.
   log(`connecting to Speculos at ${cfg.speculosUrl} ...`);
   const conn = await connectSpeculos(cfg);
   try {
-    const descriptorPath = compiledDescriptorPath(cfg);
-    const ctxModule = buildContextModule(cfg, descriptorPath, () =>
-      log(
-        `WARNING: no compiled descriptor at ${descriptorPath} — device will BLIND-SIGN. ` +
-          `Produce/sign the descriptor to get clear signing (see README).`,
-      ),
-    );
+    const ctxModule = buildTestCalContextModule(ORIGIN_TOKEN);
     const signer = buildEthSigner(conn.dmk, conn.sessionId, ctxModule);
 
     log("waiting for operator to approve the readable claim on the device ...");
@@ -93,6 +99,7 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
     return true;
   } finally {
     await conn.close();
+    clearSign?.stop();
   }
 }
 
