@@ -1,9 +1,4 @@
-/**
- * Print the operator address the Speculos device derives at DERIVATION_PATH.
- * Use it to fill OPERATOR_ADDRESS in agent/.env and the contracts deploy.
- *
- *   npm run whoami
- */
+// Print the operator address the device derives at DERIVATION_PATH.
 import { SignerEthBuilder } from "@ledgerhq/device-signer-kit-ethereum";
 import { DeviceActionStatus } from "@ledgerhq/device-management-kit";
 import { loadConfigForWhoami } from "./config.whoami.js";

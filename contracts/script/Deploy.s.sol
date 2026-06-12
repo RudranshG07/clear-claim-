@@ -7,19 +7,9 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {RewardToken} from "../src/RewardToken.sol";
 import {DePINRewardDistributor} from "../src/DePINRewardDistributor.sol";
 
-/// @notice Deploys RewardToken + DePINRewardDistributor, funds the reward pool,
-///         and accrues a starting reward to the operator so the agent has
-///         something to claim.
-///
-/// Env:
-///   OPERATOR_ADDRESS  - the operator whose Ledger/Speculos signs the claim
-///                       (the address derived at 44'/60'/0'/0/0 on the seed).
-///   INITIAL_ACCRUAL   - reward to credit the operator, in wei (default 142.5e18).
-///   POOL_SUPPLY       - total RWRD minted into the pool, in wei (default 1,000,000e18).
-///
-/// Run:
-///   forge script script/Deploy.s.sol --rpc-url sepolia --broadcast -vvvv \
-///     --private-key $DEPLOYER_PRIVATE_KEY
+/// @notice Deploys the token + distributor, funds the pool, and seeds the
+///         operator. Env: OPERATOR_ADDRESS, INITIAL_ACCRUAL, POOL_SUPPLY,
+///         DEMO_REWARD (0 disables the faucet).
 contract Deploy is Script {
     using SafeERC20 for IERC20;
 
@@ -27,8 +17,6 @@ contract Deploy is Script {
         address operator = vm.envAddress("OPERATOR_ADDRESS");
         uint256 accrual = vm.envOr("INITIAL_ACCRUAL", uint256(36.75 ether));
         uint256 poolSupply = vm.envOr("POOL_SUPPLY", uint256(1_000_000 ether));
-        // Demo faucet reward — modeled on WeatherXM's live per-station rate so
-        // anyone can run the full keyless flow without us. 0 = production (off).
         uint256 demoReward = vm.envOr("DEMO_REWARD", uint256(36.75 ether));
 
         vm.startBroadcast();
@@ -36,7 +24,6 @@ contract Deploy is Script {
         RewardToken token = new RewardToken(poolSupply);
         DePINRewardDistributor distributor = new DePINRewardDistributor(token, demoReward);
 
-        // Fund the distributor's reward pool, then credit the operator.
         IERC20(address(token)).safeTransfer(address(distributor), poolSupply);
         distributor.accrue(operator, accrual);
 

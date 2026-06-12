@@ -14,15 +14,9 @@ import { setupClearSigning } from "./signer/clearSign.js";
 import { broadcast } from "./broadcast.js";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
-
-// Origin token for the DMK default context module. Any non-empty value works
-// against Ledger's dev CAL flow used by the cal-interceptor.
 const ORIGIN_TOKEN = process.env.GATING_TOKEN ?? "clear-claim-agent";
 
-/**
- * Load the ERC-7730 descriptor template and patch it with the configured chain
- * and deployed addresses, so the same descriptor works on any supported chain.
- */
+// Patch the descriptor template with the configured chain + deployed addresses.
 function buildDescriptor(cfg: AgentConfig): object {
   const path = resolve(
     moduleDir,
@@ -39,7 +33,6 @@ function buildDescriptor(cfg: AgentConfig): object {
 const log = (...a: unknown[]) => console.log(`[agent ${new Date().toISOString()}]`, ...a);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** One observe -> decide -> (sign -> broadcast) cycle. Returns true if it claimed. */
 async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<boolean> {
   const [claimable, fees, depin] = await Promise.all([
     chain.claimable(cfg.operator),
@@ -72,7 +65,6 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
 
   log(`DECIDE claim ${formatEther(decision.amount)} RWRD to ${cfg.recipient} (${decision.reason})`);
 
-  // Assemble the claim transaction (agent holds no key).
   const [nonce, gas] = await Promise.all([
     chain.nonce(cfg.operator),
     chain.estimateClaimGas(cfg.operator, decision.amount, cfg.recipient),
@@ -94,7 +86,6 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
     return true;
   }
 
-  // Make our ERC-7730 descriptor render as clear signing on the device.
   const clearSign = await setupClearSigning(buildDescriptor(cfg));
   if (clearSign && clearSign.count > 0) {
     log(`clear signing armed for ${clearSign.keys.join(", ")}`);
@@ -102,7 +93,6 @@ async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<bo
     log("WARNING: clear-signing descriptor unavailable — device may blind-sign.");
   }
 
-  // Hand the unsigned tx to the operator's device for clear-signed approval.
   log(`connecting to Speculos at ${cfg.speculosUrl} ...`);
   const conn = await connectSpeculos(cfg);
   try {
@@ -148,14 +138,9 @@ async function main() {
 
   while (running) {
     try {
-      const claimed = await tick(cfg, chain, dryRun);
+      await tick(cfg, chain, dryRun);
       if (once) break;
-      if (claimed) {
-        // After a claim, keep watching (claimable resets to 0).
-        await sleep(cfg.pollIntervalMs);
-      } else {
-        await sleep(cfg.pollIntervalMs);
-      }
+      await sleep(cfg.pollIntervalMs);
     } catch (err) {
       log("error:", err instanceof Error ? err.message : err);
       if (once) process.exitCode = 1;

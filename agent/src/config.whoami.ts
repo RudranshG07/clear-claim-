@@ -2,10 +2,7 @@ import "dotenv/config";
 import { z } from "zod";
 import { DeviceModelId } from "@ledgerhq/device-management-kit";
 
-/**
- * Minimal config for `whoami`, which runs BEFORE deployment (you need the
- * operator address to deploy). Only the device fields are required.
- */
+// Device-only config for `whoami` (runs before deployment).
 const schema = z.object({
   TRANSPORT: z.enum(["speculos", "usb"]).default("speculos"),
   SPECULOS_URL: z.string().url().default("http://localhost:5000"),

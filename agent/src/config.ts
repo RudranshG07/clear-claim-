@@ -4,11 +4,10 @@ import { getAddress, parseEther, parseGwei, type Address, type Chain } from "vie
 import { sepolia, polygonAmoy, arbitrumSepolia } from "viem/chains";
 import { DeviceModelId } from "@ledgerhq/device-management-kit";
 
-// EVM chains the agent supports (all clear-signing-capable via Ledger's CAL).
 const CHAINS: Record<number, Chain> = {
-  [sepolia.id]: sepolia, // 11155111
-  [polygonAmoy.id]: polygonAmoy, // 80002 — DIMO's chain (Polygon)
-  [arbitrumSepolia.id]: arbitrumSepolia, // 421614 — WeatherXM's chain (Arbitrum)
+  [sepolia.id]: sepolia,
+  [polygonAmoy.id]: polygonAmoy,
+  [arbitrumSepolia.id]: arbitrumSepolia,
 };
 
 const addressSchema = z
@@ -21,41 +20,24 @@ const deviceModelSchema = z
   .default("flex")
   .transform((v) => v as DeviceModelId);
 
-/**
- * Agent configuration. The agent is *keyless*: nothing here is a private key.
- * The operator's signing key lives on the Ledger / Speculos device. The only
- * secret-ish value is the RPC URL.
- */
 const schema = z.object({
-  // Chain access. CHAIN_ID selects the network; RPC_URL (or legacy
-  // SEPOLIA_RPC_URL) is the endpoint.
   CHAIN_ID: z.coerce.number().int().default(sepolia.id),
   RPC_URL: z.string().url().optional(),
   SEPOLIA_RPC_URL: z.string().url().optional(),
 
-  // Deployed contracts (from the Foundry deploy)
   DISTRIBUTOR_ADDRESS: addressSchema,
   REWARD_TOKEN_ADDRESS: addressSchema,
-
-  // The operator: address derived at DERIVATION_PATH on the Speculos seed.
-  // This is who has claimable rewards and who approves on-device.
   OPERATOR_ADDRESS: addressSchema,
-
-  // Where claimed rewards are sent. Defaults to the operator itself.
   CLAIM_RECIPIENT: addressSchema.optional(),
 
-  // Decision thresholds — the "intelligence" layer.
-  // Only propose a claim when claimable >= FLOOR and gas <= CEILING.
-  FLOOR_RWRD: z.coerce.number().positive().default(100), // min reward worth claiming
-  CEILING_GWEI: z.coerce.number().positive().default(50), // max maxFeePerGas to tolerate
+  FLOOR_RWRD: z.coerce.number().positive().default(100),
+  CEILING_GWEI: z.coerce.number().positive().default(50),
 
-  // Signing device
-  TRANSPORT: z.enum(["speculos", "usb"]).default("speculos"), // usb = real Ledger
+  TRANSPORT: z.enum(["speculos", "usb"]).default("speculos"),
   SPECULOS_URL: z.string().url().default("http://localhost:5000"),
   DERIVATION_PATH: z.string().default("44'/60'/0'/0/0"),
   DEVICE_MODEL: deviceModelSchema,
 
-  // Loop
   POLL_INTERVAL_MS: z.coerce.number().int().positive().default(15_000),
 });
 

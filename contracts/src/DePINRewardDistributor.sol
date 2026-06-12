@@ -6,38 +6,19 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title DePINRewardDistributor
-/// @notice Tracks per-operator claimable DePIN rewards and lets an operator
-///         claim them. The autonomous agent reads `claimable` and assembles a
-///         `claim` transaction, but the operator signs it on a Ledger device.
-/// @dev `claim` takes explicit `amount` and `to` parameters on purpose: those
-///      calldata fields are what the ERC-7730 descriptor formats into a
-///      human-readable "Claim 36.75 RWRD to 0x..." string on the device.
-///
-///      Two ways an operator gets a claimable balance:
-///        1. `accrue` (onlyOwner) — the production path: the DePIN protocol's
-///           reward settlement credits the operator.
-///        2. a permissionless **demo faucet** — so anyone can run the full
-///           keyless flow without us. `claimable()` reports `demoReward` once the
-///           per-operator cooldown elapses, and `claim()` self-credits it. The
-///           agent stays keyless: the operator's single clear-signed claim both
-///           drips and transfers.
+/// @notice Per-operator reward accounting with two ways to fund a claim:
+///         `accrue` (owner) for real settlement, and a permissionless demo
+///         faucet so anyone can run the flow. `claim` takes explicit amount/to
+///         params so the ERC-7730 descriptor can render them on the device.
 contract DePINRewardDistributor is Ownable {
     using SafeERC20 for IERC20;
 
-    /// @notice The reward token paid out on claim.
     IERC20 public immutable rewardToken;
-
-    /// @notice Demo faucet reward (wei), modeled on WeatherXM's live per-station
-    ///         rate at deploy time. Zero disables the faucet (production mode).
+    /// @notice Faucet amount per cooldown; 0 disables the faucet.
     uint256 public immutable demoReward;
-
-    /// @notice Min seconds between demo-faucet drips per operator.
     uint256 public constant DRIP_COOLDOWN = 60;
 
-    /// @dev Owner-accrued (real) rewards per operator.
     mapping(address operator => uint256 amount) private _accrued;
-
-    /// @notice Last time an operator received a demo-faucet drip.
     mapping(address operator => uint256 timestamp) public lastDrip;
 
     event Accrued(address indexed operator, uint256 amount);
@@ -54,8 +35,7 @@ contract DePINRewardDistributor is Ownable {
         demoReward = demoReward_;
     }
 
-    /// @notice Rewards an operator can currently claim — real accrued balance,
-    ///         or the demo-faucet reward once the cooldown has elapsed.
+    /// @notice Accrued balance, or the faucet reward once the cooldown elapses.
     function claimable(address operator) public view returns (uint256) {
         uint256 accrued = _accrued[operator];
         if (accrued > 0) return accrued;
@@ -63,8 +43,6 @@ contract DePINRewardDistributor is Ownable {
         return 0;
     }
 
-    /// @notice Credit an operator with newly earned rewards. Production path —
-    ///         driven by the DePIN protocol's settlement of node activity.
     function accrue(address operator, uint256 amount) external onlyOwner {
         if (operator == address(0)) revert ZeroAddress();
         if (amount == 0) revert AmountZero();
@@ -72,12 +50,8 @@ contract DePINRewardDistributor is Ownable {
         emit Accrued(operator, amount);
     }
 
-    /// @notice Claim accrued rewards. Caller (the operator) chooses how much to
-    ///         claim and the destination. If the caller has nothing accrued and
-    ///         the demo faucet is ready, it self-credits `demoReward` first — so
-    ///         anyone can run the full flow with just their device.
-    /// @param amount Amount of RWRD to claim.
-    /// @param to     Recipient of the claimed rewards.
+    /// @notice Claim `amount` to `to`. Self-credits the faucet reward first when
+    ///         the caller has nothing accrued and the cooldown has passed.
     function claim(uint256 amount, address to) external {
         if (amount == 0) revert AmountZero();
         if (to == address(0)) revert ZeroAddress();

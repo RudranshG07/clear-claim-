@@ -1,16 +1,9 @@
-/**
- * The "intelligence" layer. Pure and unit-testable: given the current
- * claimable balance and gas, decide whether to propose a claim.
- *
- * Policy: claim only when the reward clears a floor AND gas is below the
- * operator's ceiling. This is what keeps the agent from claiming dust or
- * claiming into a gas spike.
- */
+// Claim only when the reward clears the floor and gas is below the ceiling.
 export type DecisionInput = {
-  claimable: bigint; // operator's claimable RWRD (wei)
-  maxFeePerGas: bigint; // current suggested max fee (wei)
-  floor: bigint; // min RWRD worth claiming (wei)
-  ceiling: bigint; // max gas the operator tolerates (wei)
+  claimable: bigint;
+  maxFeePerGas: bigint;
+  floor: bigint;
+  ceiling: bigint;
 };
 
 export type Decision =
@@ -35,7 +28,6 @@ export function decide(input: DecisionInput): Decision {
       reason: `gas above ceiling (maxFeePerGas ${maxFeePerGas} > ${ceiling})`,
     };
   }
-  // Claim the full claimable balance.
   return {
     claim: true,
     amount: claimable,

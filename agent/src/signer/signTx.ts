@@ -22,27 +22,8 @@ export function buildEthSigner(
     .build();
 }
 
-/**
- * Build the signer with Ledger's DEFAULT context module (which fetches
- * clear-signing descriptors from the CAL). Paired with the cal-interceptor,
- * this renders our local descriptor as clear signing on Speculos.
- */
-export function buildDefaultEthSigner(
-  dmk: DeviceManagementKit,
-  sessionId: DeviceSessionId,
-  originToken: string,
-): SignerEth {
-  return new SignerEthBuilder({ dmk, sessionId, originToken }).build();
-}
-
-/**
- * Run the on-device sign-transaction flow and await the signature.
- *
- * The operator approves the claim on the Speculos screen. With the local
- * descriptor present, the device shows a readable "Claim 142.5 RWRD to 0x..."
- * instead of a raw hash. Intermediate device-action states are surfaced via
- * `onStep` so the caller can narrate the flow.
- */
+// Run the on-device signing flow and resolve with the signature. `onStep`
+// surfaces the intermediate device-action states.
 export function signOnDevice(
   signer: SignerEth,
   derivationPath: string,

@@ -1,7 +1,6 @@
 import type { Hex } from "viem";
 import type { Chain } from "./chain.js";
 
-/** Broadcast a signed raw tx and wait for the receipt. */
 export async function broadcast(
   chain: Chain,
   signedTx: Hex,

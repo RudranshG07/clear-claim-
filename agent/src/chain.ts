@@ -20,7 +20,6 @@ export function createChain(cfg: AgentConfig) {
   return {
     client,
 
-    /** Rewards the operator can currently claim. */
     async claimable(operator: Address): Promise<bigint> {
       return client.readContract({
         address: cfg.distributor,
@@ -30,19 +29,16 @@ export function createChain(cfg: AgentConfig) {
       });
     },
 
-    /** Current suggested EIP-1559 fees. */
     async fees(): Promise<{ maxFeePerGas: bigint; maxPriorityFeePerGas: bigint }> {
       const { maxFeePerGas, maxPriorityFeePerGas } =
         await client.estimateFeesPerGas();
       return { maxFeePerGas, maxPriorityFeePerGas };
     },
 
-    /** Next nonce for the operator. */
     async nonce(operator: Address): Promise<number> {
       return client.getTransactionCount({ address: operator });
     },
 
-    /** Encode claim(amount, to) calldata. */
     encodeClaim(amount: bigint, to: Address): Hex {
       return encodeFunctionData({
         abi: distributorAbi,
@@ -51,7 +47,6 @@ export function createChain(cfg: AgentConfig) {
       });
     },
 
-    /** Estimate gas for the operator's claim call. */
     async estimateClaimGas(
       operator: Address,
       amount: bigint,
@@ -68,5 +63,4 @@ export function createChain(cfg: AgentConfig) {
   };
 }
 
-/** Hex -> bytes helper re-export so callers don't import viem directly. */
 export { hexToBytes };

@@ -1,7 +1,3 @@
-/**
- * Minimal ABIs the agent needs. Kept hand-written (not imported from the
- * Foundry build) so the agent package stays standalone.
- */
 export const distributorAbi = [
   {
     type: "function",
