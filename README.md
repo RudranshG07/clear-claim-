@@ -9,6 +9,8 @@ via an [ERC-7730](https://eips.ethereum.org/EIPS/eip-7730) descriptor.
 The point: a hardware gate doesn't protect anyone if the device only shows an
 unreadable hash. The approval is only meaningful when the transaction is readable.
 
+<img src="docs/assets/amoy-amount.png" width="280" alt="Ledger showing Claim 36.75 RWRD" />
+
 ```
  Node agent (viem)          Reward contract            Ledger (Speculos)
  ────────────────           ───────────────            ─────────────────

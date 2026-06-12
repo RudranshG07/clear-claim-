@@ -5,8 +5,7 @@
   "type": "module",
   "description": "ERC-7730 clear-signing descriptor for DePINRewardDistributor + tooling.",
   "scripts": {
-    "validate": "node validate.mjs",
-    "apply-addresses": "node apply-addresses.mjs"
+    "validate": "node validate.mjs"
   },
   "devDependencies": {
     "ajv": "^8.17.1",
