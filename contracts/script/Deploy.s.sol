@@ -25,13 +25,16 @@ contract Deploy is Script {
 
     function run() external {
         address operator = vm.envAddress("OPERATOR_ADDRESS");
-        uint256 accrual = vm.envOr("INITIAL_ACCRUAL", uint256(142.5 ether));
+        uint256 accrual = vm.envOr("INITIAL_ACCRUAL", uint256(36.75 ether));
         uint256 poolSupply = vm.envOr("POOL_SUPPLY", uint256(1_000_000 ether));
+        // Demo faucet reward — modeled on WeatherXM's live per-station rate so
+        // anyone can run the full keyless flow without us. 0 = production (off).
+        uint256 demoReward = vm.envOr("DEMO_REWARD", uint256(36.75 ether));
 
         vm.startBroadcast();
 
         RewardToken token = new RewardToken(poolSupply);
-        DePINRewardDistributor distributor = new DePINRewardDistributor(token);
+        DePINRewardDistributor distributor = new DePINRewardDistributor(token, demoReward);
 
         // Fund the distributor's reward pool, then credit the operator.
         IERC20(address(token)).safeTransfer(address(distributor), poolSupply);
@@ -42,6 +45,6 @@ contract Deploy is Script {
         console2.log("RewardToken (RWRD):     ", address(token));
         console2.log("DePINRewardDistributor: ", address(distributor));
         console2.log("Operator:               ", operator);
-        console2.log("Accrued to operator:    ", accrual);
+        console2.log("Demo faucet reward:     ", demoReward);
     }
 }

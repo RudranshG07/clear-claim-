@@ -24,6 +24,16 @@ device. The same descriptor that makes it readable is contributed back to
 **Ledger's ERC-7730 registry** — so the project doesn't just *use* Ledger, it
 *extends* its ecosystem.
 
+## Grounded in real DePIN data
+
+The reward the agent claims isn't invented — it's pulled live from **WeatherXM's
+public API** (`api.weatherxm.com`, a real DePIN with 6,000+ weather stations on
+Arbitrum). The agent reads the network's actual reward distribution
+(e.g. ~226,000 WXM across ~6,162 active stations in 30 days) and models the
+operator's claim on the **real per-station rate (~36.75 WXM/month)**. So the
+device clear-signs a genuine DePIN reward amount. (Settlement runs on our testnet
+contract — no DePIN mints claimable *test* rewards — but the number is real.)
+
 ## How it uses the Ledger Agent Stack (DMK)
 
 The agent (`agent/src/`) is pure TypeScript + viem and never touches a key:

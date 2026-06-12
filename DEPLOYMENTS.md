@@ -13,8 +13,10 @@ full clear-signed flow on two networks.
 - **Operator:** `0xf35ec83BDcd18BFF5412Df78362557E0F19f13Db` (Speculos seed `44'/60'/0'/0/0`)
 - **Clear-signed claim** (device showed "Claim 142.5 RWRD to 0x…", "Network: Polygon Amoy"):
   [`0x1f9dc7b4…`](https://amoy.polygonscan.com/tx/0x1f9dc7b4fe75c3dc3c818b0db49ca21874d81a2ec7177ce622a49da1565852d8)
-  — claimable 142.5 → 0, operator received 142.5 RWRD.
-- Proof: `docs/assets/amoy-amount.png`, `docs/assets/amoy-network.png`.
+- **Clear-signed claim with the live WeatherXM reward** ("Claim 36.75 RWRD" — the
+  real per-station monthly rate from `api.weatherxm.com`):
+  [`0x04e104c2…`](https://amoy.polygonscan.com/tx/0x04e104c2e0dc46646a5fa4d966fdb99b7890c95212065a5954e4f4c48e559cd7)
+- Proof: `docs/assets/amoy-amount.png`, `docs/assets/amoy-network.png`, `docs/assets/demo.mp4`.
 
 ## Sepolia (chainId 11155111)
 

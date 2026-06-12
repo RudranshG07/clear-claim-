@@ -7,6 +7,7 @@ import { createChain, type Chain } from "./chain.js";
 import { decide } from "./decision.js";
 import { buildUnsignedClaimTx, buildSignedClaimTx } from "./tx.js";
 import { connectSpeculos } from "./signer/speculos.js";
+import { getDepinReward } from "./depin.js";
 import { buildEthSigner, signOnDevice } from "./signer/signTx.js";
 import { buildTestCalContextModule } from "./signer/contextModule.js";
 import { setupClearSigning } from "./signer/clearSign.js";
@@ -40,7 +41,19 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** One observe -> decide -> (sign -> broadcast) cycle. Returns true if it claimed. */
 async function tick(cfg: AgentConfig, chain: Chain, dryRun: boolean): Promise<boolean> {
-  const [claimable, fees] = await Promise.all([chain.claimable(cfg.operator), chain.fees()]);
+  const [claimable, fees, depin] = await Promise.all([
+    chain.claimable(cfg.operator),
+    chain.fees(),
+    getDepinReward(),
+  ]);
+  if (depin) {
+    log(
+      `live DePIN data (${depin.source}): ${depin.activeStations} active WeatherXM ` +
+        `stations earned ${depin.rewards30d.toLocaleString()} WXM/30d ` +
+        `→ ~${depin.perStationMonthly.toFixed(2)} WXM/station. ` +
+        `The operator's reward is modeled on this real per-station rate.`,
+    );
+  }
   log(
     `claimable=${formatEther(claimable)} RWRD  maxFeePerGas=${formatGwei(fees.maxFeePerGas)} gwei`,
   );

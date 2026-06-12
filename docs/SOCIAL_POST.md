@@ -1,8 +1,11 @@
 # Social post drafts — Ledger BNT-0038
 
 Requirements baked in: tags **@Ledger**, includes **#LedgerSponsor** disclosure,
-shows the build (link + the on-device screenshot/video). Attach
-`docs/assets/02-cannot-clear-sign.png` (and/or a screen recording of the flow).
+shows the build (link + on-device proof). Attach `docs/assets/demo.mp4` (or your
+own screen recording — see `docs/DEMO_SCRIPT.md`) and/or
+`docs/assets/03-clearsign-amount.png` ("Claim 36.75 RWRD to 0x…").
+
+> Note: the clear-signing now actually renders on the device. Lead with that.
 
 ---
 
@@ -11,19 +14,18 @@ shows the build (link + the on-device screenshot/video). Attach
 > AI agents are signing transactions today — mostly with hot keys in a .env file.
 >
 > I built **Clear-Claim**: an autonomous agent that manages DePIN reward claims
-> but holds NO key. It assembles the tx → the human approves on a Ledger → it
-> broadcasts. Built on @Ledger's DMK, demoed on Speculos.
+> but holds NO key. It assembles the tx → the human approves on a Ledger that
+> shows **"Claim 36.75 RWRD to 0x…"** (not a hash) → it broadcasts on-chain.
 >
-> The twist: the device REFUSED to sign 👇 because the tx wasn't human-readable.
-> That refusal *is* the point — a hardware gate is useless if you're blind-signing
-> a hash. So I also contributed an ERC-7730 clear-signing descriptor back to
-> Ledger's registry.
+> Built on @Ledger's DMK + ERC-7730 clear signing, demoed end-to-end on Speculos
+> (Polygon Amoy). A gate is useless if you're blind-signing — the human-in-the-loop
+> only works if the tx is readable.
 >
 > Repo + on-chain proof: <REPO_URL>
 >
 > #LedgerSponsor
 
-*(attach 02-cannot-clear-sign.png)*
+*(attach docs/assets/demo.mp4 or 03-clearsign-amount.png)*
 
 ---
 
@@ -56,7 +58,7 @@ shows the build (link + the on-device screenshot/video). Attach
 
 **5/**
 > So I contributed an **ERC-7730 clear-signing descriptor** back to Ledger's open
-> registry — turning the claim into a readable "Claim 142.5 RWRD to 0x…".
+> registry — turning the claim into a readable "Claim 36.75 RWRD to 0x…".
 > The project doesn't just *use* Ledger; it *extends* it.
 >
 > Code + proof: <REPO_URL>
@@ -81,7 +83,7 @@ shows the build (link + the on-device screenshot/video). Attach
 > meaningless if the device shows an unreadable hash; the human is still
 > blind-signing a blank check. So I went further and contributed an **ERC-7730
 > clear-signing descriptor** back to Ledger's registry, so the claim renders as a
-> readable "Claim 142.5 RWRD to 0x…" on-device.
+> readable "Claim 36.75 RWRD to 0x…" on-device.
 >
 > The missing layer in agentic crypto isn't an agent that can sign — it's an agent
 > whose signing the human can actually verify.

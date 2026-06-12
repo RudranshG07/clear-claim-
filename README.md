@@ -5,7 +5,7 @@
 An autonomous agent watches an operator's claimable rewards and the current gas
 price, decides when a claim is worth making, and assembles the transaction — but
 it **holds no private key**. The operator approves the claim on a Ledger device
-that shows a **human-readable** line (`Claim 142.5 RWRD to 0x9aF3…`) instead of a
+that shows a **human-readable** line (`Claim 36.75 RWRD to 0x9aF3…`) instead of a
 raw hash, via an [ERC-7730](https://eips.ethereum.org/EIPS/eip-7730) clear-signing
 descriptor.
 
@@ -27,7 +27,7 @@ agent with clear signing so the approval step actually protects the operator.
         │
         │ assembles claim tx (viem)
         ▼
- DMK signer (in-process) ── clear-signed via ────────► "Claim 142.5 RWRD
+ DMK signer (in-process) ── clear-signed via ────────► "Claim 36.75 RWRD
  (no key in the agent)      ERC-7730 descriptor          to 0x9aF3…21bC"
         │                                                operator approves
         │ broadcasts signed tx                           on the secure screen
@@ -73,14 +73,17 @@ cp .env.amoy-demo.example .env
 npm start
 ```
 
-Open **http://localhost:5005**: the Ledger renders **"Claim 142.5 RWRD to 0x… ·
+Open **http://localhost:5005**: the Ledger renders **"Claim 36.75 RWRD to 0x… ·
 Network Polygon Amoy"**. **Reject** to just see the render (repeatable), or **swipe
 + hold to sign** to broadcast a real on-chain claim (one-shot until re-accrued).
 
-> Honest scope: this is **testnet** (Polygon Amoy), and the rewards follow a real
-> DePIN reward-claim *pattern* but are accrued by us (no live DePIN hands out test
-> rewards). Speculos is Ledger's **official** emulator running the real Ethereum
-> app + DMK — the signing is genuine, just not on physical hardware.
+> Honest scope: the reward amount is **real** — pulled live from
+> [WeatherXM's public API](https://api.weatherxm.com/api/v1/network/stats) (a real
+> DePIN; ~6k stations on Arbitrum), modeled on the actual per-station rate
+> (~36.75 WXM/month). Settlement runs on our **testnet** (Polygon Amoy) contract
+> because no DePIN mints claimable *test* rewards. Speculos is Ledger's **official**
+> emulator running the real Ethereum app + DMK — the signing is genuine, just not
+> on physical hardware.
 
 ---
 
@@ -142,7 +145,7 @@ When it reaches the device, open **http://localhost:5005**, and you'll see the
 Ledger render the claim in plain language:
 
 > Review transaction to **Claim DePIN rewards** → Interaction with **Clear-Claim**
-> → **Claim 142.5 RWRD** → To `0x…` → Network **Polygon Amoy**
+> → **Claim 36.75 RWRD** → To `0x…` → Network **Polygon Amoy**
 
 Swipe through and **hold to sign**. The agent broadcasts and prints the tx hash.
 See `docs/assets/` for screenshots of exactly this.
