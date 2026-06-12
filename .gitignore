@@ -1,7 +1,7 @@
 # secrets
 **/.env
 !**/.env.example
-!**/.env.amoy-demo.example
+!**/.env.demo.example
 
 # deps / build output
 **/node_modules/

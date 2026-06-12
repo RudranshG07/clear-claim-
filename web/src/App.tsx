@@ -9,6 +9,7 @@ import {
   Eye,
   Cpu,
   Radio,
+  Usb,
 } from "lucide-react";
 
 const VIDEO_SRC =
@@ -412,7 +413,7 @@ function Devices() {
 
 function How() {
   const steps = [
-    { i: Eye, n: "01", h: "Watch", p: "Reads your claimable balance and gas — modeled on live WeatherXM reward data.", k: "keyless · viem" },
+    { i: Eye, n: "01", h: "Watch", p: "Reads your claimable balance and gas — modeled on a live DePIN's real reward rate.", k: "keyless · viem" },
     { i: Cpu, n: "02", h: "Decide", p: "Proposes a claim only when the reward clears your floor and gas is below your ceiling.", k: "policy" },
     { i: KeyRound, n: "03", h: "Clear-sign", p: "Hands the tx to your Ledger via the DMK. You approve “Claim 36.75 RWRD”.", k: "erc-7730 · dmk" },
     { i: Radio, n: "04", h: "Broadcast", p: "The signed tx is broadcast. The key never left the device; the agent never saw it.", k: "on-chain" },
@@ -449,9 +450,9 @@ function How() {
 
 function Data() {
   const rows: [string, string, boolean][] = [
-    ["active stations", "6,162", false],
-    ["rewards / 30d", "226,429 WXM", false],
-    ["per station / mo", "≈ 36.75 WXM", true],
+    ["active nodes", "6,162", false],
+    ["rewards / 30d", "226,429", false],
+    ["per node / mo", "≈ 36.75", true],
     ["→ agent claims", "36.75 RWRD", true],
   ];
   return (
@@ -463,7 +464,7 @@ function Data() {
             Grounded in a live DePIN.
           </h2>
           <p className="mt-5 text-[#9a9aa2] max-w-2xl text-lg">
-            The reward isn't invented. The agent reads WeatherXM's live network rate — a real DePIN, 6,000+ stations on Arbitrum — and claims a genuine per-station amount.
+            The reward isn't invented. The agent reads a live DePIN network's real reward rate and claims a genuine per-operator amount.
           </p>
         </Reveal>
         <Reveal delay={0.1}>
@@ -473,7 +474,7 @@ function Data() {
                 The claim amount tracks a live DePIN's actual reward economics.
               </h3>
               <p className="mt-4 text-[#9a9aa2]">
-                Settlement runs on a testnet contract — no DePIN mints claimable test rewards — but the number is real, pulled each cycle from <span className="font-mono text-acc">api.weatherxm.com</span>.
+                The number is real — pulled each cycle from a <span className="font-mono text-acc">live reward feed</span> and turned into the operator's claim, not a figure we made up.
               </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#0a0a0c] p-6 font-mono text-sm">
@@ -507,7 +508,7 @@ function Proof() {
             Proven on-chain.
           </h2>
           <p className="mt-5 text-[#9a9aa2] max-w-2xl text-lg">
-            Signed on a real Ledger emulator (Speculos, Ethereum app v1.22.1), broadcast to Polygon Amoy — the testnet of the chain DIMO runs on.
+            Signed on a real Ledger — the Speculos emulator or your own hardware (Ethereum app v1.22.1) — and broadcast on-chain.
           </p>
         </Reveal>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 mt-14">
@@ -529,59 +530,112 @@ function Proof() {
   );
 }
 
+function PathCard({
+  icon: Icon,
+  title,
+  tag,
+  steps,
+}: {
+  icon: typeof Usb;
+  title: string;
+  tag: string;
+  steps: { c: string; b?: string }[];
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-[#0a0a0c] p-6 sm:p-7">
+      <div className="flex items-center gap-3 mb-5">
+        <span className="grid place-items-center w-9 h-9 rounded-lg bg-acc/10 text-acc">
+          <Icon size={18} />
+        </span>
+        <div>
+          <h3 className="font-display text-lg font-medium tracking-tight text-ink leading-none">{title}</h3>
+          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#5b5c63]">{tag}</span>
+        </div>
+      </div>
+      <ol className="space-y-3">
+        {steps.map((s, i) => (
+          <li key={i} className="flex gap-3 text-[15px] text-[#9a9aa2]">
+            <span className="font-mono text-xs text-acc mt-1">{String(i + 1).padStart(2, "0")}</span>
+            <span>{s.c} {s.b && <span className="font-mono text-[13px] text-ink">{s.b}</span>}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function Term({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0a0a0c] font-mono text-[13px]">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[.06] text-[#5b5c63] text-xs">
+        <i className="w-3 h-3 rounded-full bg-[#ff5f57] inline-block" />
+        <i className="w-3 h-3 rounded-full bg-[#febc2e] inline-block" />
+        <i className="w-3 h-3 rounded-full bg-[#28c840] inline-block" />
+        <span className="ml-2">clear-claim — zsh</span>
+      </div>
+      <div className="p-5 sm:p-6 leading-[1.85] overflow-x-auto text-[#cdccd4] whitespace-pre">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+const P = () => <span className="text-acc">$ </span>;
+const C = ({ children }: { children: React.ReactNode }) => (
+  <span className="text-[#5b5c63]">{children}</span>
+);
+const G = ({ children }: { children: React.ReactNode }) => (
+  <span className="text-[#6fd08c]">{children}</span>
+);
+
 function Try() {
-  const notes: [string, string, string][] = [
-    ["The device renders ", "“Claim 36.75 RWRD to 0x…”", " — readable, not a hash."],
-    ["The agent holds ", "no key", "; only your device signs."],
-    ["A permissionless ", "faucet", " arms any operator — repeatable every 60s."],
-    ["Got real hardware? Set ", "TRANSPORT=usb", " and approve on your Ledger."],
-  ];
   return (
     <section id="try" className="bg-bg2 border-t border-white/[.06] py-24 sm:py-32">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         <Reveal>
           <Label n="06">Try it</Label>
           <h2 className="font-display font-semibold tracking-[-0.02em] text-4xl sm:text-5xl text-ink max-w-2xl leading-[1.04]">
-            Run it yourself.
+            Run it on a simulator or your own Ledger.
           </h2>
           <p className="mt-5 text-[#9a9aa2] max-w-2xl text-lg">
-            No key, no faucet, no deploy. The contract self-credits a reward to any operator, so the Speculos default seed just works — approve on your own emulated Ledger.
+            No key and no deploy. The contract self-credits a reward to any operator, so it works out of the box. The agent never holds a key — only your device signs.
           </p>
         </Reveal>
-        <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-6 mt-14 items-start">
+
+        <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-6 mt-14 items-start">
           <Reveal>
-            <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0a0a0c] font-mono text-[13px]">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[.06] text-[#5b5c63] text-xs">
-                <i className="w-3 h-3 rounded-full bg-[#ff5f57] inline-block" />
-                <i className="w-3 h-3 rounded-full bg-[#febc2e] inline-block" />
-                <i className="w-3 h-3 rounded-full bg-[#28c840] inline-block" />
-                <span className="ml-2">clear-claim — zsh</span>
-              </div>
-              <div className="p-5 sm:p-6 leading-[1.9] overflow-x-auto text-[#cdccd4]">
-                <div className="text-[#5b5c63]"># 1 · your own Ledger emulator</div>
-                <div><span className="text-acc">$</span> API_PORT=5005 scripts/run-speculos.sh</div>
-                <div className="text-[#5b5c63] mt-3"># 2 · the keyless agent, live contract</div>
-                <div><span className="text-acc">$</span> cd agent && npm install</div>
-                <div><span className="text-acc">$</span> cp .env.amoy-demo.example .env && npm start</div>
-                <div className="text-[#6fd08c] mt-3">live DePIN data: 6162 stations → ~36.75 WXM</div>
-                <div className="text-[#6fd08c]">claimable=36.75 RWRD · clear signing armed</div>
-                <div>→ open localhost:5005 · swipe · hold to sign</div>
-                <div className="text-[#6fd08c]">✓ tx success — broadcast on Polygon Amoy</div>
-              </div>
-            </div>
+            <Term>
+              <C># prereqs: Docker + Node 20+</C>{"\n"}
+              <P />git clone https://github.com/RudranshG07/clear-claim-.git{"\n"}
+              <P />cd clear-claim-{"\n\n"}
+              <C># 1 · download the Ledger app + run the emulator</C>{"\n"}
+              <P />mkdir -p scripts/apps{"\n"}
+              <P />curl -sSL -o scripts/apps/ethereum-flex.elf \{"\n"}
+              {"    "}https://github.com/LedgerHQ/app-ethereum/releases/download/1.22.1/app-1.22.1-flex.elf{"\n"}
+              <P />API_PORT=5005 DEVICE_MODEL=flex scripts/run-speculos.sh{"\n\n"}
+              <C># 2 · run the keyless agent</C>{"\n"}
+              <P />cd agent {"&&"} npm install{"\n"}
+              <P />cp .env.demo.example .env{"\n"}
+              <P />cd .. {"&&"} bash scripts/demo.sh{"\n\n"}
+              <G>live reward feed → ~36.75 reward</G>{"\n"}
+              <G>claimable=36.75 RWRD · clear signing armed</G>{"\n"}
+              → review · hold to sign{"\n"}
+              <G>✓ signed on device · broadcast on-chain</G>
+            </Term>
           </Reveal>
+
           <Reveal delay={0.1}>
-            <div className="rounded-2xl border border-white/10 bg-[#0a0a0c] p-6 sm:p-7">
-              <h3 className="font-display text-xl font-medium tracking-tight text-ink mb-5">What you'll see</h3>
-              <ul>
-                {notes.map((p, i) => (
-                  <li key={i} className="flex gap-3 py-3 border-b border-white/[.06] last:border-0 text-[#9a9aa2] text-[15px]">
-                    <ArrowRight size={15} className="text-acc mt-1 shrink-0" />
-                    <span>{p[0]}<b className="text-ink font-medium">{p[1]}</b>{p[2]}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <PathCard
+              icon={Usb}
+              title="Use a real Ledger instead"
+              tag="hardware · usb"
+              steps={[
+                { c: "Set", b: "TRANSPORT=usb" },
+                { c: "Plug in your Ledger, open the Ethereum app" },
+                { c: "Run", b: "npm start" },
+                { c: "Review + approve the claim on the device" },
+              ]}
+            />
           </Reveal>
         </div>
       </div>

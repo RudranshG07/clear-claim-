@@ -4,7 +4,7 @@
 # have to operate the emulator's touchscreen by hand. Prints the on-chain tx.
 #
 # Prereqs: Speculos running on :5005 (scripts/run-speculos.sh) and agent/.env set
-# (cp agent/.env.amoy-demo.example agent/.env).
+# (cp agent/.env.demo.example agent/.env).
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SPECULOS="${SPECULOS_URL:-http://localhost:5005}"

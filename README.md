@@ -50,7 +50,7 @@ curl -sSL -o scripts/apps/ethereum-flex.elf \
 API_PORT=5005 DEVICE_MODEL=flex scripts/run-speculos.sh
 
 # 2. the agent, pointed at the live contract
-cd agent && npm install && cp .env.amoy-demo.example .env
+cd agent && npm install && cp .env.demo.example .env
 cd .. && bash scripts/demo.sh   # runs the agent and approves on the simulator
 ```
 
