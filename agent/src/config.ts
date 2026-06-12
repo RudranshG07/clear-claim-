@@ -50,6 +50,7 @@ const schema = z.object({
   CEILING_GWEI: z.coerce.number().positive().default(50), // max maxFeePerGas to tolerate
 
   // Signing device
+  TRANSPORT: z.enum(["speculos", "usb"]).default("speculos"), // usb = real Ledger
   SPECULOS_URL: z.string().url().default("http://localhost:5000"),
   DERIVATION_PATH: z.string().default("44'/60'/0'/0/0"),
   DEVICE_MODEL: deviceModelSchema,
@@ -90,6 +91,7 @@ function load() {
     recipient: env.CLAIM_RECIPIENT ?? env.OPERATOR_ADDRESS,
     floor: parseEther(env.FLOOR_RWRD.toString()),
     ceiling: parseGwei(env.CEILING_GWEI.toString()),
+    transport: env.TRANSPORT,
     speculosUrl: env.SPECULOS_URL,
     derivationPath: env.DERIVATION_PATH,
     deviceModel: env.DEVICE_MODEL,

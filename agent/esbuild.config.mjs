@@ -14,6 +14,10 @@ await build({
   target: "node20",
   sourcemap: true,
   logLevel: "info",
+  // node-hid is a native module + optional (only for real-hardware USB). Keep it
+  // external so the bundle doesn't try to inline the binary; it's dynamically
+  // imported at runtime only when TRANSPORT=usb.
+  external: ["@ledgerhq/device-transport-kit-node-hid"],
   // reflect-metadata + inversify (used by the eth signer) rely on decorator
   // metadata already emitted in the published JS, so no extra config needed.
   banner: {

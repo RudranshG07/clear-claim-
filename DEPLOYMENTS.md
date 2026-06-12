@@ -3,12 +3,24 @@
 The agent is multi-chain (`CHAIN_ID` selects the network). Deployed and ran the
 full clear-signed flow on two networks.
 
-## Polygon Amoy (chainId 80002 — the testnet of DIMO's chain)
+## Polygon Amoy (chainId 80002 — the testnet of DIMO's chain) — **live demo**
+
+Current contracts (with the permissionless demo faucet):
 
 | Contract | Address |
 |---|---|
-| RewardToken (RWRD) | [`0x25701aCCf2B9774afE71f43f4e010Eb82a0A7444`](https://amoy.polygonscan.com/address/0x25701aCCf2B9774afE71f43f4e010Eb82a0A7444) |
-| DePINRewardDistributor | [`0x9C1c395C0B1B15eF4DE0B618597b1e221b7E2128`](https://amoy.polygonscan.com/address/0x9C1c395C0B1B15eF4DE0B618597b1e221b7E2128) |
+| RewardToken (RWRD) | [`0x9B60A21F729CC6138E89d84615c1c26b06f31354`](https://amoy.polygonscan.com/address/0x9B60A21F729CC6138E89d84615c1c26b06f31354) |
+| DePINRewardDistributor (faucet) | [`0x699B46c34cDd4480E6160FaDcC982D3Bf8E6E6f5`](https://amoy.polygonscan.com/address/0x699B46c34cDd4480E6160FaDcC982D3Bf8E6E6f5) |
+
+**Anyone can run the full flow with zero setup:** `claimable()` reports the demo
+reward (36.75 RWRD, modeled on WeatherXM's live per-station rate) for any address
+once a 60s cooldown elapses, and `claim()` self-credits it — so the keyless agent
++ a single clear-signed claim works for anybody, no accrue from us. Proven:
+[`0x6957a89a…`](https://amoy.polygonscan.com/tx/0x6957a89a67c9938cbc77cd5e563f9d6a0f986afe18ef58140a1960872aa3cdfc)
+(operator had 0 accrued → faucet self-credited → received 36.75 RWRD).
+
+Earlier (pre-faucet) deployment: RWRD `0x25701aCCf2B9774afE71f43f4e010Eb82a0A7444`,
+distributor `0x9C1c395C0B1B15eF4DE0B618597b1e221b7E2128`.
 
 - **Operator:** `0xf35ec83BDcd18BFF5412Df78362557E0F19f13Db` (Speculos seed `44'/60'/0'/0/0`)
 - **Clear-signed claim** (device showed "Claim 142.5 RWRD to 0x…", "Network: Polygon Amoy"):

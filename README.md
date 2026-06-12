@@ -56,9 +56,12 @@ agent with clear signing so the approval step actually protects the operator.
 
 ## Quickstart — zero-deploy demo (~5 min, no key, no faucet)
 
-The fastest way to see the clear-signed claim. It points at the **live Clear-Claim
-contracts on Polygon Amoy**; the Speculos default seed derives the operator that
-already has rewards accrued — so you deploy nothing and hold no key.
+The fastest way to see the clear-signed claim — **no key, no faucet, no deploy.**
+It points at the **live Clear-Claim contracts on Polygon Amoy**. The contract has
+a permissionless demo faucet: `claimable()` reports the reward (36.75 RWRD,
+modeled on WeatherXM's live rate) for *any* operator, and the claim self-credits
+it — so the keyless agent + your single clear-signed approval works for anyone,
+repeatable every 60s.
 
 ```bash
 # 1. Speculos with the Ledger Ethereum app (port 5005 dodges macOS AirPlay on 5000)
@@ -80,10 +83,10 @@ Network Polygon Amoy"**. **Reject** to just see the render (repeatable), or **sw
 > Honest scope: the reward amount is **real** — pulled live from
 > [WeatherXM's public API](https://api.weatherxm.com/api/v1/network/stats) (a real
 > DePIN; ~6k stations on Arbitrum), modeled on the actual per-station rate
-> (~36.75 WXM/month). Settlement runs on our **testnet** (Polygon Amoy) contract
-> because no DePIN mints claimable *test* rewards. Speculos is Ledger's **official**
-> emulator running the real Ethereum app + DMK — the signing is genuine, just not
-> on physical hardware.
+> (~36 WXM/month). Settlement runs on our **testnet** (Polygon Amoy) contract via
+> a permissionless faucet (no DePIN mints claimable *test* rewards). The agent,
+> DMK signing, clear-sign render, and on-chain token transfer are all genuine;
+> Speculos is Ledger's **official** emulator — just not physical hardware.
 
 ---
 
@@ -151,6 +154,29 @@ Swipe through and **hold to sign**. The agent broadcasts and prints the tx hash.
 See `docs/assets/` for screenshots of exactly this.
 
 ---
+
+## Use your own device
+
+The agent is transport-agnostic (the DMK abstracts the device). Set `TRANSPORT`:
+
+**Your own Speculos (default, `TRANSPORT=speculos`).** Run `scripts/run-speculos.sh`
+yourself — it's your own emulated Ledger on your machine. The default seed
+derives the same operator everywhere, and the contract's faucet credits it, so it
+just works.
+
+**A real hardware Ledger (`TRANSPORT=usb`).** Plug in your Ledger, open the
+Ethereum app, and set `TRANSPORT=usb` in `agent/.env` (uses
+`@ledgerhq/device-transport-kit-node-hid`, an optional native dep). The agent
+connects over USB and you approve on the physical device. The operator becomes
+*your* device's address — the faucet credits any address, so it still works (fund
+your address with a little test gas).
+
+> Caveat on real hardware: a production Ledger only renders clear-signing for
+> descriptors **Ledger's CAL has signed**. Our dev-signed descriptor renders on
+> Speculos but not on a stock device, so on real hardware the claim **blind-signs**
+> (enable blind signing in the app) until the descriptor is merged into Ledger's
+> ERC-7730 registry. The keyless + hardware-gated flow works on real hardware
+> today; the readable render needs the registry (the production path).
 
 ## How clear signing works here
 

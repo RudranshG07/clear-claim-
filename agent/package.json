@@ -23,6 +23,9 @@
     "viem": "^2.21.0",
     "zod": "^3.23.8"
   },
+  "optionalDependencies": {
+    "@ledgerhq/device-transport-kit-node-hid": "^1.0.1"
+  },
   "devDependencies": {
     "@types/node": "^22.5.0",
     "esbuild": "^0.28.0",

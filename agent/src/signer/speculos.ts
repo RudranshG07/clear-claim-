@@ -3,13 +3,18 @@ import {
   type DeviceManagementKit,
   type DeviceSessionId,
   type DiscoveredDevice,
+  type TransportFactory,
 } from "@ledgerhq/device-management-kit";
 import { speculosTransportFactory } from "@ledgerhq/device-transport-kit-speculos";
 import type { DeviceModelId } from "@ledgerhq/device-management-kit";
 import { firstValueFrom } from "rxjs";
 
 /** Only the fields needed to reach the device. */
-type DeviceConfig = { speculosUrl: string; deviceModel: DeviceModelId };
+type DeviceConfig = {
+  speculosUrl: string;
+  deviceModel: DeviceModelId;
+  transport?: "speculos" | "usb";
+};
 
 export type DeviceConnection = {
   dmk: DeviceManagementKit;
@@ -17,21 +22,33 @@ export type DeviceConnection = {
   close: () => Promise<void>;
 };
 
+/** Pick the transport: Speculos emulator (default) or a real USB Ledger. */
+async function buildTransport(cfg: DeviceConfig): Promise<TransportFactory> {
+  if (cfg.transport === "usb") {
+    // Real hardware Ledger over USB. Lazy-imported so Speculos users don't need
+    // the native node-hid build.
+    const { nodeHidTransportFactory } = await import(
+      "@ledgerhq/device-transport-kit-node-hid"
+    );
+    return nodeHidTransportFactory;
+  }
+  return speculosTransportFactory(cfg.speculosUrl, false, cfg.deviceModel);
+}
+
 /**
- * Build the DMK against the Speculos transport, discover the emulated device,
- * and open a session. This is the in-process equivalent of plugging in a
- * Ledger — no CLI, no hardware.
+ * Build the DMK against the configured transport, discover the device, and open
+ * a session. Speculos (emulator) by default; set transport="usb" to use a real
+ * plugged-in Ledger. Either way the agent stays keyless — the key never leaves
+ * the device.
  */
 export async function connectSpeculos(
   cfg: DeviceConfig,
 ): Promise<DeviceConnection> {
   const dmk = new DeviceManagementKitBuilder()
-    .addTransport(
-      speculosTransportFactory(cfg.speculosUrl, false, cfg.deviceModel),
-    )
+    .addTransport(await buildTransport(cfg))
     .build();
 
-  // Discover the (single) Speculos device and connect.
+  // Discover the device and connect.
   if (process.env.DMK_DEBUG) console.error("[dmk] discovering...");
   const device: DiscoveredDevice = await firstValueFrom(dmk.startDiscovering({}));
   if (process.env.DMK_DEBUG) console.error(`[dmk] discovered ${device.id} (${device.deviceModel?.model}); connecting...`);
