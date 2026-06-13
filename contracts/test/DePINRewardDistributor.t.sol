@@ -21,9 +21,7 @@ contract DePINRewardDistributorTest is Test {
 
     function setUp() public {
         token = new RewardToken(POOL);
-        // demoReward = 0 → faucet disabled for the accrue/claim tests.
         distributor = new DePINRewardDistributor(token, 0);
-        // Fund the distributor's reward pool.
         require(token.transfer(address(distributor), POOL), "fund failed");
     }
 
@@ -110,27 +108,23 @@ contract DePINRewardDistributorTest is Test {
         assertEq(token.balanceOf(recipient), claimAmount);
     }
 
-    // --- permissionless demo faucet ---
-
     uint256 internal constant DEMO = 36.75 ether;
 
     function _faucetDistributor() internal returns (DePINRewardDistributor d) {
         d = new DePINRewardDistributor(token, DEMO);
-        token.mint(address(d), POOL); // mint a fresh pool to fund it
+        token.mint(address(d), POOL);
     }
 
     function test_FaucetReportsDemoRewardWhenReady() public {
         DePINRewardDistributor d = _faucetDistributor();
-        // fresh operator, no accrual → claimable reports the demo reward
         assertEq(d.claimable(operator), DEMO);
     }
 
     function test_FaucetClaimSelfCredits() public {
         DePINRewardDistributor d = _faucetDistributor();
         vm.prank(operator);
-        d.claim(DEMO, recipient); // self-drips, then transfers
+        d.claim(DEMO, recipient);
         assertEq(token.balanceOf(recipient), DEMO);
-        // immediately after, the cooldown blocks another drip
         assertEq(d.claimable(operator), 0);
     }
 
@@ -140,11 +134,10 @@ contract DePINRewardDistributorTest is Test {
         d.claim(DEMO, recipient);
         assertEq(d.claimable(operator), 0);
         vm.warp(block.timestamp + d.DRIP_COOLDOWN());
-        assertEq(d.claimable(operator), DEMO); // ready again
+        assertEq(d.claimable(operator), DEMO);
     }
 
     function test_FaucetDisabledWhenDemoRewardZero() public view {
-        // setUp's distributor has demoReward = 0 → faucet off
         assertEq(distributor.claimable(operator), 0);
     }
 }

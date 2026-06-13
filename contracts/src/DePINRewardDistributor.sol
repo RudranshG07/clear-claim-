@@ -5,16 +5,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @title DePINRewardDistributor
-/// @notice Per-operator reward accounting with two ways to fund a claim:
-///         `accrue` (owner) for real settlement, and a permissionless demo
-///         faucet so anyone can run the flow. `claim` takes explicit amount/to
-///         params so the ERC-7730 descriptor can render them on the device.
 contract DePINRewardDistributor is Ownable {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable rewardToken;
-    /// @notice Faucet amount per cooldown; 0 disables the faucet.
     uint256 public immutable demoReward;
     uint256 public constant DRIP_COOLDOWN = 60;
 
@@ -35,7 +29,6 @@ contract DePINRewardDistributor is Ownable {
         demoReward = demoReward_;
     }
 
-    /// @notice Accrued balance, or the faucet reward once the cooldown elapses.
     function claimable(address operator) public view returns (uint256) {
         uint256 accrued = _accrued[operator];
         if (accrued > 0) return accrued;
@@ -50,8 +43,6 @@ contract DePINRewardDistributor is Ownable {
         emit Accrued(operator, amount);
     }
 
-    /// @notice Claim `amount` to `to`. Self-credits the faucet reward first when
-    ///         the caller has nothing accrued and the cooldown has passed.
     function claim(uint256 amount, address to) external {
         if (amount == 0) revert AmountZero();
         if (to == address(0)) revert ZeroAddress();

@@ -91,11 +91,19 @@ Set `TRANSPORT=usb` in `agent/.env`, plug in a Ledger, open the Ethereum app, an
 approve on the device. The readable render requires the registry descriptor; until
 then a stock device blind-signs.
 
-## Live demo contracts (Polygon Amoy)
+## Deployed contracts
 
-- RewardToken: `0x9B60A21F729CC6138E89d84615c1c26b06f31354`
-- DePINRewardDistributor: `0x699B46c34cDd4480E6160FaDcC982D3Bf8E6E6f5`
+Live demo deployment on **Polygon Amoy** (chainId `80002`):
 
-The agent reads WeatherXM's live per-station reward rate
-(`api.weatherxm.com`) and claims that amount; the contract self-credits it on a
-60s cooldown so anyone can run the flow.
+| Contract | Address |
+|----------|---------|
+| `RewardToken` (RWRD) | [`0x9B60A21F729CC6138E89d84615c1c26b06f31354`](https://amoy.polygonscan.com/address/0x9B60A21F729CC6138E89d84615c1c26b06f31354) |
+| `DePINRewardDistributor` | [`0x699B46c34cDd4480E6160FaDcC982D3Bf8E6E6f5`](https://amoy.polygonscan.com/address/0x699B46c34cDd4480E6160FaDcC982D3Bf8E6E6f5) |
+
+Example clear-signed claim, signed on the device and broadcast on-chain:
+[`0x6957a89a…`](https://amoy.polygonscan.com/tx/0x6957a89a67c9938cbc77cd5e563f9d6a0f986afe18ef58140a1960872aa3cdfc)
+
+The agent reads WeatherXM's live per-station reward rate (`api.weatherxm.com`) and
+claims that amount; the distributor self-credits it on a 60s cooldown so anyone
+can run the flow without a key or a deploy. The same `Deploy.s.sol` works on
+Sepolia (`11155111`) and Arbitrum Sepolia (`421614`) — set `CHAIN_ID` accordingly.

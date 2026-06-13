@@ -7,9 +7,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {RewardToken} from "../src/RewardToken.sol";
 import {DePINRewardDistributor} from "../src/DePINRewardDistributor.sol";
 
-/// @notice Deploys the token + distributor, funds the pool, and seeds the
-///         operator. Env: OPERATOR_ADDRESS, INITIAL_ACCRUAL, POOL_SUPPLY,
-///         DEMO_REWARD (0 disables the faucet).
 contract Deploy is Script {
     using SafeERC20 for IERC20;
 
